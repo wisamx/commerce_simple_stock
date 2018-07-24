@@ -1,0 +1,31 @@
+{{ attach_library('commerce_simple_stock/inventory_control') }}
+
+<div class="span10">
+    <div class="well">
+        <div class="row-fluid">
+
+            <div class="span4">
+                <div class="input-append transfer-barcode">
+                    {{ form.sku }}
+                    <button class="button" type="button" id="button-add-item">Add</button>
+                </div>
+            </div>
+
+        </div><!-- end row-fluid -->
+        {{ form.values }}
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" class="table table-stock-total">
+            <tbody><tr>
+                <td>TOTAL</td>
+                <td class="table-transfers-total">0</td>
+            </tr>
+            </tbody></table>
+
+			{{ form.actions }}
+			
+    </div><!--well-->
+</div>
+
+{{ form.form_build_id }}
+{{ form.form_token }}
+{{ form.form_id }}

@@ -1,0 +1,4 @@
+commerce_simple_stock.inventory_control:
+  route_name: commerce_simple_stock.inventory_control
+  base_route: commerce_simple_stock.inventory_control
+  title: 'Operations'

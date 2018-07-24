@@ -18,6 +18,14 @@ function commerce_simple_stock_help($route_name, RouteMatchInterface $route_matc
   }
 }
 
+function commerce_simple_stock_theme($existing, $type, $theme, $path) {
+  return [
+    'commerce_simple_stock_inventory_control_form' => [
+      'render element' => 'form',
+    ],
+  ];
+}
+
 function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $form_data = $form_state->getStorage();
   if (empty($form_data['product'])) {
