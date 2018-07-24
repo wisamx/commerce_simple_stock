@@ -1,5 +1,6 @@
-# commerce_simple_stock
-The module implements a simple stock management for Drupal Commerce.
+# Commerce Simple Stock
+
+The module implements a simple stock management for Drupal 8 Commerce 2.
 
 Usage:
 - Add a field_stock to the variant type.
