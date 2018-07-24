@@ -1,0 +1,9 @@
+name: Commerce Simple Stock
+description: 'Adds the commerce stock management feture.'
+package: Commerce
+type: module
+core: 8.x
+
+dependencies:
+  - commerce
+  - commerce_product

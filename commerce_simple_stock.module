@@ -1,0 +1,44 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_help().
+ */
+function commerce_simple_stock_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the commerce_simple_stock module.
+    case 'help.page.commerce_simple_stock':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Allows commerce_simple_stock.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $form_data = $form_state->getStorage();
+  if (empty($form_data['product'])) {
+    return;
+  }
+
+	$product = $form_data['product'];
+	
+	$variation = $product->getVariations()[0]; //My products have only one variation
+	
+	$stock = (integer) $variation->field_stock->value;
+	
+	if ($stock <= 0) {
+		$form['quantity'] = null;
+		$form['actions'] = null;
+		$form['outofstock'] = [
+		  '#type' => 'textfield',
+		  '#value' => t('Out of stock'),
+		  '#weight' => 0,
+		  '#disabled' => true,
+		];
+	}
+	
+}
