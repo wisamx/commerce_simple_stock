@@ -3,6 +3,7 @@
 namespace Drupal\commerce_simple_stock\EventSubscriber;
 
 use Drupal\commerce_order\Event\OrderEvents;
+use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderItemEvent;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -28,12 +29,22 @@ class OrderEventSubscriber implements EventSubscriberInterface {
    * {@inheritdoc}
    */
   public static function getSubscribedEvents() {
-    $events['commerce_order.place.post_transition'] = 'postTransitionOrder';
+	
+    $events['commerce_order.place.post_transition'] = ['postTransitionOrder', -100];
+	$events['commerce_order.cancel.post_transition'] = ['postTransitionCancelOrder', -100];
+	
+	//$events[OrderEvents::ORDER_UPDATE] = ['onOrderUpdate', -100];
+	$events[OrderEvents::ORDER_PREDELETE] = ['onOrderDelete', -100];
+	
+	$events[OrderEvents::ORDER_ITEM_PREDELETE] = 'preDeleteOrderItem';
+    $events[OrderEvents::ORDER_ITEM_PRESAVE] = 'preSaveOrderItem';
+	
     return $events;
   }
 
   public function postTransitionOrder(WorkflowTransitionEvent $event, $event_name) {
-    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+	dpm('order placed post_transition');
+	
     $order = $event->getEntity();
 	
     foreach ($order->getItems() as $order_item) {
@@ -49,4 +60,98 @@ class OrderEventSubscriber implements EventSubscriberInterface {
     }
 	
   }
+  
+  public function postTransitionCancelOrder(WorkflowTransitionEvent $event, $event_name) {
+    $order = $event->getEntity();
+    if ($order->original && $order->original->getState()->value === 'draft') {
+      return;
+    }
+	
+    foreach ($order->getItems() as $order_item) {
+	  if ($order_item->hasPurchasedEntity()) {
+		  $purchasedEntity = $order_item->getPurchasedEntity();
+		  if ($purchasedEntity->hasField('field_stock')) {
+			  $purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $order_item->getQuantity();
+			  $purchasedEntity->save();
+		  }
+	  }
+    }
+	
+  }
+  
+  public function preDeleteOrderItem(OrderItemEvent $event) {
+    $item = $event->getOrderItem();
+	$order = $item->getOrder();
+	
+	if ($order && !in_array($order->getState()->value, ['draft', 'canceled'])) {
+	  
+	  $quantity = $item->getQuantity();
+	  
+      if ($quantity) {
+        $purchasedEntity = $item->getPurchasedEntity();
+        if (!$purchasedEntity) {
+          return;
+        }
+		if ($purchasedEntity->hasField('field_stock')) {
+			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $quantity;
+			$purchasedEntity->save();
+		}
+      }
+	  
+	}
+  }
+  
+  public function preSaveOrderItem(OrderItemEvent $event) {
+    $item = $event->getOrderItem();
+	$order = $item->getOrder();
+	
+	if ($order && !in_array($order->getState()->value, ['draft', 'canceled'])) {
+		
+	  $diff = $item->original->getQuantity() - $item->getQuantity();
+	  
+      if ($diff) {
+        $purchasedEntity = $item->getPurchasedEntity();
+        if (!$purchasedEntity) {
+          return;
+        }
+		if ($purchasedEntity->hasField('field_stock')) {
+			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $diff;
+			$purchasedEntity->save();
+		}
+      }
+	  
+	}
+  }
+  
+  public function onOrderDelete(OrderEvent $event) {
+    $order = $event->getOrder();
+    if (in_array($order->getState()->value, ['draft', 'canceled'])) {
+      return;
+    }
+    $items = $order->getItems();
+    foreach ($items as $item) {
+      $purchasedEntity = $item->getPurchasedEntity();
+      if (!$purchasedEntity) {
+        continue;
+      }
+	  
+		if ($purchasedEntity->hasField('field_stock')) {
+			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $item->getQuantity();
+			$purchasedEntity->save();
+		}
+	  
+    }
+  }
+  
+  
+  public function onOrderUpdate(OrderEvent $event) {
+    $order = $event->getOrder();
+    $original_order = $order->original;
+	
+	if ($order->getState()->value == 'fulfillment' && $original_order->getState()->value == 'draft') {
+		dpm("order draft -> fulfillment");
+	}
+	
+  }
+  
 }
