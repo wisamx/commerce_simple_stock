@@ -11,4 +11,5 @@ Features:
 - Prevent adding the product to cart when its not available.
 - Prevent checking out order items when its not available.
 - Decrease product variant stock when an order is placed.
-- Provide an Inventory Control page for Bulk Stock updates
+- Update product variant stock when an order item is updated/deleted.
+- Provide an Inventory Control page for Bulk Stock updates.
