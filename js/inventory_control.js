@@ -26,6 +26,13 @@ $(function(){
       calculateTotalQuantity();
     }
   });
+  
+  $("#button-add-item-product").click(function(){
+    if ($("#edit-product").val() != '') {
+      chooseProduct();
+      calculateTotalQuantity();
+    }
+  });
 
   $("#edit-values").on('click', '.delete-item-button', function() {
     $(this).closest('tr').remove();
@@ -42,6 +49,14 @@ $(function(){
     addProduct(SKU);
     $("#edit-sku").val("");
     $("#edit-sku").focus();
+  }
+  
+  function chooseProduct() {
+    $("#edit-product").blur();
+    var title = $("#edit-product").val();
+    addProduct(title);
+    $("#edit-product").val("");
+    $("#edit-product").focus();
   }
 
   function addProduct(sku) {

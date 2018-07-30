@@ -25,39 +25,23 @@ class StockInventoryControlForm extends FormBase {
     $form['sku'] = [
       '#type' => 'textfield',
       '#autocomplete_route_name' => 'commerce_simple_stock.sku_autocomplete',
-      '#placeholder' => t('Scan or Type SKU number...'),
+      '#placeholder' => t('Type SKU number...'),
       '#required' => FALSE,
       '#title' => $this->t('SKU'),
     ];
+	
+    $form['product'] = [
+      '#type' => 'entity_autocomplete',
+      '#target_type' => 'commerce_product_variation',
+      '#placeholder' => $this->t('Choose Product'),
+      '#required' => FALSE,
+      '#title' => $this->t('Choose Product'),
+    ];
 
-    //$locations = \Drupal::entityTypeManager()->getStorage('commerce_simple_stock_location')->loadMultiple();
-
-    /*$options = [];
-    $user = \Drupal::currentUser();
-    foreach ($locations as $lid => $location) {
-      if ($user->hasPermission('administer stock entity') || $user->hasPermission('edit stock entity at any location')) {
-        $options[$lid] = $location->get('name')->value;
-      } else if ($user->hasPermission('edit stock entity at own location')) {
-        $uids = $location->get('uid');
-        foreach ($uids as $manager) {
-          if ($manager->target_id == $user->id()) {
-            $options[$lid] = $location->get('name')->value;
-          }
-        }
-      }
-    }*/
-
-    $form['actions'] = array(
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#collapsed' => FALSE,
-    );
-
-    $form['actions']['fill'] = [
+    $form['fill'] = [
       '#type' => 'submit',
       '#value' => $this->t('Fill'),
     ];
-	
 	
 
     $form['values'] = [
@@ -69,7 +53,7 @@ class StockInventoryControlForm extends FormBase {
       ],
     ];
 
-    /* //If we have user submitted values, that means this is triggered by form rebuild because of SKU not found
+    ///If we have user submitted values, that means this is triggered by form rebuild because of SKU not found
     $user_submit = $form_state->getValue('values');
     if (isset($user_submit)) {
       $invalidSKUPos = $form_state->getStorage();
@@ -84,14 +68,6 @@ class StockInventoryControlForm extends FormBase {
           '#required' => TRUE,
           '#attributes' => ['readonly' => 'readonly'],
           '#prefix' => '<div class="sku">',
-          '#suffix' => '</div>',
-        ];
-        $value_form['title'] = [
-          '#type' => 'textfield',
-          '#default_value' => $row['title'],
-          '#required' => TRUE,
-          '#attributes' => ['readonly' => 'readonly'],
-          '#prefix' => '<div class="title">',
           '#suffix' => '</div>',
         ];
         if (isset($invalidSKUPos[$pos]) && $invalidSKUPos[$pos]) {
@@ -109,7 +85,7 @@ class StockInventoryControlForm extends FormBase {
         ];
       }
     }
-	*/
+	
 	
     return $form;
   }
@@ -160,18 +136,24 @@ class StockInventoryControlForm extends FormBase {
     } else {
       // When all SKUs are valid, process the submission
       foreach ($user_submit as $pos => $row) {
-				
-        $quantity = abs($row['quantity']);
+		
+          $quantity = abs($row['quantity']);
 		  
           $query = \Drupal::entityQuery('commerce_product_variation');
           $variationIDs = $query->condition('sku', $row['sku'])->execute();
 		  
           $productVariation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load(current($variationIDs));
-          $productVariation->field_stock->value = $productVariation->field_stock->value + $quantity;
-          $productVariation->save();
+		  if ($productVariation->hasField('field_stock')) {
+			  if ($productVariation->field_stock->value == null)
+				  $productVariation->field_stock->value = 0;
+			  $productVariation->field_stock->value = $productVariation->field_stock->value + $quantity;
+			  $productVariation->save();
+			  
+			  drupal_set_message($this->t($productVariation->getTitle() . ': ' . $productVariation->field_stock->value));
+		  }
 		  
       }
-      drupal_set_message($this->t('Operation: ' . $op . ' succeeded!'));
+      drupal_set_message($this->t('Operation Succeeded!'));
     }
 
   }
@@ -190,24 +172,5 @@ class StockInventoryControlForm extends FormBase {
     return $result ? TRUE : FALSE;
   }
 
-  /**
-   *
-   * @return \Drupal\commerce_simple_stock\Entity\StockInterface
-   */
-  /*protected function getStock($sku, $location_id) {
-    $connection = Database::getConnection('default', NULL);
-    $query = $connection->select('commerce_product_variation__stock', 'cs');
-    $query->join('commerce_product_variation_field_data', 'cr', 'cr.variation_id=cs.entity_id');
-    $query->join('commerce_simple_stock_field_data', 'csf', 'csf.stock_id=cs.stock_target_id');
-    $query->fields('cs', ['stock_target_id']);
-    $query->condition('cr.sku', $sku);
-    $query->condition('csf.stock_location', $location_id);
-
-    $stock_id = $query->execute()->fetchField();
-
-    if ($stock_id) {
-      return \Drupal::entityTypeManager()->getStorage('commerce_simple_stock')->load($stock_id);
-    } else return NULL;
-  }*/
 
 }

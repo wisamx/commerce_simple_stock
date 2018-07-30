@@ -33,7 +33,7 @@ class OrderEventSubscriber implements EventSubscriberInterface {
     $events['commerce_order.place.post_transition'] = ['postTransitionOrder', -100];
 	$events['commerce_order.cancel.post_transition'] = ['postTransitionCancelOrder', -100];
 	
-	//$events[OrderEvents::ORDER_UPDATE] = ['onOrderUpdate', -100];
+	$events[OrderEvents::ORDER_UPDATE] = ['onOrderUpdate', -100];
 	$events[OrderEvents::ORDER_PREDELETE] = ['onOrderDelete', -100];
 	
 	$events[OrderEvents::ORDER_ITEM_PREDELETE] = 'preDeleteOrderItem';
@@ -43,14 +43,13 @@ class OrderEventSubscriber implements EventSubscriberInterface {
   }
 
   public function postTransitionOrder(WorkflowTransitionEvent $event, $event_name) {
-	dpm('order placed post_transition');
 	
     $order = $event->getEntity();
 	
     foreach ($order->getItems() as $order_item) {
 	  if ($order_item->hasPurchasedEntity()) {
 		  $purchasedEntity = $order_item->getPurchasedEntity();
-		  if ($purchasedEntity->hasField('field_stock')) {
+		  if ($purchasedEntity->hasField('field_stock')  && $purchasedEntity->field_stock->value != null) {
 			  $purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value - $order_item->getQuantity();
 			  if ($purchasedEntity->field_stock->value < 0)
 				  $purchasedEntity->field_stock->value = 0;
@@ -70,7 +69,7 @@ class OrderEventSubscriber implements EventSubscriberInterface {
     foreach ($order->getItems() as $order_item) {
 	  if ($order_item->hasPurchasedEntity()) {
 		  $purchasedEntity = $order_item->getPurchasedEntity();
-		  if ($purchasedEntity->hasField('field_stock')) {
+		  if ($purchasedEntity->hasField('field_stock') && $purchasedEntity->field_stock->value != null) {
 			  $purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $order_item->getQuantity();
 			  $purchasedEntity->save();
 		  }
@@ -92,7 +91,7 @@ class OrderEventSubscriber implements EventSubscriberInterface {
         if (!$purchasedEntity) {
           return;
         }
-		if ($purchasedEntity->hasField('field_stock')) {
+		if ($purchasedEntity->hasField('field_stock') && $purchasedEntity->field_stock->value != null) {
 			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $quantity;
 			$purchasedEntity->save();
 		}
@@ -114,7 +113,7 @@ class OrderEventSubscriber implements EventSubscriberInterface {
         if (!$purchasedEntity) {
           return;
         }
-		if ($purchasedEntity->hasField('field_stock')) {
+		if ($purchasedEntity->hasField('field_stock') && $purchasedEntity->field_stock->value != null) {
 			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $diff;
 			$purchasedEntity->save();
 		}
@@ -135,7 +134,7 @@ class OrderEventSubscriber implements EventSubscriberInterface {
         continue;
       }
 	  
-		if ($purchasedEntity->hasField('field_stock')) {
+		if ($purchasedEntity->hasField('field_stock') && $purchasedEntity->field_stock->value != null) {
 			$purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value + $item->getQuantity();
 			$purchasedEntity->save();
 		}
@@ -143,15 +142,26 @@ class OrderEventSubscriber implements EventSubscriberInterface {
     }
   }
   
-  
   public function onOrderUpdate(OrderEvent $event) {
     $order = $event->getOrder();
     $original_order = $order->original;
 	
-	if ($order->getState()->value == 'fulfillment' && $original_order->getState()->value == 'draft') {
-		dpm("order draft -> fulfillment");
-	}
-	
+    foreach ($order->getItems() as $item) {
+      if (!$original_order->hasItem($item)) {
+        if ($order && !in_array($order->getState()->value, ['draft', 'canceled'])) {
+          $purchasedEntity = $item->getPurchasedEntity();
+          if (!$purchasedEntity) {
+            continue;
+          }
+		  if ($purchasedEntity->hasField('field_stock') && $purchasedEntity->field_stock->value != null) {
+			  $purchasedEntity->field_stock->value = $purchasedEntity->field_stock->value - $order_item->getQuantity();
+			  if ($purchasedEntity->field_stock->value < 0)
+				  $purchasedEntity->field_stock->value = 0;
+			  $purchasedEntity->save();
+		  }
+        }
+      }
+    }
   }
   
 }

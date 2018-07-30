@@ -4,7 +4,7 @@ commerce_simple_stock.inventory_control:
     _form: '\Drupal\commerce_simple_stock\Form\StockInventoryControlForm'
     _title: 'Inventory Control'
   requirements:
-    _permission: 'access content'
+    _permission: 'administer stock'
 
 commerce_simple_stock.sku_autocomplete:
   path: '/commerce-simple-stock/sku-autocomplete'

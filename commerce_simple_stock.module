@@ -36,17 +36,21 @@ function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&
 	
 	$variation = $product->getVariations()[0]; //My products have only one variation
 	
-	$stock = (integer) $variation->field_stock->value;
-	
-	if ($stock <= 0) {
-		$form['quantity'] = null;
-		$form['actions'] = null;
-		$form['outofstock'] = [
-		  '#type' => 'textfield',
-		  '#value' => t('Out of stock'),
-		  '#weight' => 0,
-		  '#disabled' => true,
-		];
+	if ($variation->hasField('field_stock') && $variation->field_stock->value != null) {
+		
+		$stock = (integer) $variation->field_stock->value;
+		
+		if ($stock <= 0) {
+			$form['quantity'] = null;
+			$form['actions'] = null;
+			$form['outofstock'] = [
+			  '#type' => 'textfield',
+			  '#value' => t('Out of stock'),
+			  '#weight' => 0,
+			  '#disabled' => true,
+			];
+		}
+		
 	}
 	
 }

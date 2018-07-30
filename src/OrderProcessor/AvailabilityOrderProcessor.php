@@ -23,28 +23,33 @@ class AvailabilityOrderProcessor implements OrderProcessorInterface {
       if ($purchased_entity) {
         $order_quantity = floatval($order_item->getQuantity());
 		
-		$stock = (integer) $purchased_entity->field_stock->value;
+		if ($purchased_entity->hasField('field_stock') && $purchased_entity->field_stock->value != null) {
+			
+			$stock = (integer) $purchased_entity->field_stock->value;
+			
+			// Remove order item there is no quantity available.
+			if (empty($stock) || $stock <= 0) {
+			  $order->removeItem($order_item);
+			  $order_item->delete();
+			  $this->messenger()->addError(
+				$this->t('@purchasable is no longer available and has been removed from your order.', [
+				  '@purchasable' => $purchased_entity->label()
+				])
+			  );
+			}
+			// Adjust to max quantity available if over.
+			elseif ($stock < $order_quantity) {
+			  $this->messenger()->addError(
+				$this->t('@purchasable only has @quantity available. Your order has been updated.', [
+				  '@purchasable' => $purchased_entity->label(),
+				  '@quantity' => $stock,
+				])
+			  );
+			  $order_item->setQuantity($stock);
+			}
+			
+		}
 		
-        // Remove order item there is no quantity available.
-        if (empty($stock) || $stock < 0) {
-          $order->removeItem($order_item);
-          $order_item->delete();
-          $this->messenger()->addError(
-            $this->t('@purchasable is no longer available and has been removed from your order.', [
-              '@purchasable' => $purchased_entity->label()
-            ])
-          );
-        }
-        // Adjust to max quantity available if over.
-        elseif ($stock < $order_quantity) {
-          $this->messenger()->addError(
-            $this->t('@purchasable only has @quantity available. Your order has been updated.', [
-              '@purchasable' => $purchased_entity->label(),
-              '@quantity' => $stock,
-            ])
-          );
-          $order_item->setQuantity($stock);
-        }
       }
     }
   }
