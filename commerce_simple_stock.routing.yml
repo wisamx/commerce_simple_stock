@@ -2,7 +2,7 @@ commerce_simple_stock.inventory_control:
   path: '/admin/commerce/stock-inventory'
   defaults:
     _form: '\Drupal\commerce_simple_stock\Form\StockInventoryControlForm'
-    _title: 'Inventory Control'
+    _title: 'Inventory Adjustments'
   requirements:
     _permission: 'administer stock'
 
@@ -12,3 +12,11 @@ commerce_simple_stock.sku_autocomplete:
     _controller: '\Drupal\commerce_simple_stock\Controller\CommerceSimpleStockController::handleAutocomplete'
   requirements:
     _permission: 'access content'
+    
+commerce_simple_stock.settings:
+  path: '/admin/commerce/config/stock-inventory'
+  defaults:
+    _form: '\Drupal\commerce_simple_stock\Form\StockInventoryConfigForm'
+    _title: 'Inventory Settings'
+  requirements:
+    _permission: 'administer stock'

@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function commerce_simple_stock_install() {
+  // if we want to automatically add the 
+  // field_stock to the default Purchasable Entity,
+  // we would do it here.
+ 
+  // see also: https://www.drupal.org/docs/8/api/update-api/updating-entities-and-fields-in-drupal-8
+}

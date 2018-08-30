@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
+use \Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help().
@@ -12,6 +13,7 @@ function commerce_simple_stock_help($route_name, RouteMatchInterface $route_matc
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Allows commerce_simple_stock.') . '</p>';
+      // Here should be details about setting up and using
       return $output;
 
     default:
@@ -32,25 +34,25 @@ function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&
     return;
   }
 
-	$product = $form_data['product'];
+  $product = $form_data['product'];
 	
-	$variation = $product->getVariations()[0]; //My products have only one variation
+  $variation = $product->getVariations()[0]; //My products have only one variation
 	
-	if ($variation->hasField('field_stock') && $variation->field_stock->value != null) {
+  if ($variation->hasField('field_stock') && $variation->field_stock->value != NULL) {
 		
-		$stock = (integer) $variation->field_stock->value;
-		
-		if ($stock <= 0) {
-			$form['quantity'] = null;
-			$form['actions'] = null;
-			$form['outofstock'] = [
-			  '#type' => 'textfield',
-			  '#value' => t('Out of stock'),
-			  '#weight' => 0,
-			  '#disabled' => true,
-			];
-		}
-		
-	}
+    $stock = (integer) $variation->field_stock->value;
+    $allow_negative = \Drupal::config('commerce_simple_stock.settings')->get('allow_backorder');
+    if ($stock <= 0 && !$allow_negative) {
+      $form['quantity'] = NULL;
+      $form['actions'] = NULL;
+      $form['outofstock'] = [
+        '#type' => 'textfield',
+        '#value' => t('Out of stock'),
+        '#weight' => 0,
+        '#disabled' => TRUE,
+      ];
+    }
+
+  }
 	
 }

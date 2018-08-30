@@ -29,7 +29,7 @@ class StockInventoryControlForm extends FormBase {
       '#required' => FALSE,
       '#title' => $this->t('SKU'),
     ];
-	
+
     $form['product'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'commerce_product_variation',
@@ -42,7 +42,6 @@ class StockInventoryControlForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Fill'),
     ];
-	
 
     $form['values'] = [
       '#type' => 'table',
@@ -57,11 +56,14 @@ class StockInventoryControlForm extends FormBase {
     $user_submit = $form_state->getValue('values');
     if (isset($user_submit)) {
       $invalidSKUPos = $form_state->getStorage();
+
       foreach ($user_submit as $pos => $row) {
         $value_form = &$form['values'][$pos];
+
         $value_form = [
           '#parents' => ['values', $pos]
         ];
+
         $value_form['sku'] = [
           '#type' => 'textfield',
           '#default_value' => $row['sku'],
@@ -70,9 +72,11 @@ class StockInventoryControlForm extends FormBase {
           '#prefix' => '<div class="sku">',
           '#suffix' => '</div>',
         ];
+
         if (isset($invalidSKUPos[$pos]) && $invalidSKUPos[$pos]) {
           $value_form['sku']['#attributes']['class'][] = 'error';
         }
+
         $value_form['quantity'] = [
           '#type' => 'number',
           '#default_value' => $row['quantity'],
@@ -80,13 +84,13 @@ class StockInventoryControlForm extends FormBase {
           '#prefix' => '<div class="quantity">',
           '#suffix' => '</div>',
         ];
+
         $value_form['remove'] = [
           '#markup' => '<div type="button" class="button delete-item-button">Remove</div>',
         ];
       }
     }
-	
-	
+
     return $form;
   }
 
@@ -111,7 +115,7 @@ class StockInventoryControlForm extends FormBase {
     if ($des == '') {
       $des = $op;
     } else {
-      $des = $op . ': ' .$des;
+      $des = $op . ': ' . $des;
     }
 
     // Clear outdated user submit values, these are fixed by users
@@ -129,33 +133,32 @@ class StockInventoryControlForm extends FormBase {
         drupal_set_message($this->t('SKU: @sku doesn\'t exist.', ['@sku' => $row['sku']]), 'error');
       }
     }
-	
+
     if (count($invalidSKUPos) > 0) {
       $form_state->setStorage($invalidSKUPos);
       $form_state->setRebuild();
     } else {
       // When all SKUs are valid, process the submission
       foreach ($user_submit as $pos => $row) {
-		
-          $quantity = abs($row['quantity']);
-		  
-          $query = \Drupal::entityQuery('commerce_product_variation');
-          $variationIDs = $query->condition('sku', $row['sku'])->execute();
-		  
-          $productVariation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load(current($variationIDs));
-		  if ($productVariation->hasField('field_stock')) {
-			  if ($productVariation->field_stock->value == null)
-				  $productVariation->field_stock->value = 0;
-			  $productVariation->field_stock->value = $productVariation->field_stock->value + $quantity;
-			  $productVariation->save();
-			  
-			  drupal_set_message($this->t($productVariation->getTitle() . ': ' . $productVariation->field_stock->value));
-		  }
-		  
+
+        $quantity = abs($row['quantity']);
+
+        $query = \Drupal::entityQuery('commerce_product_variation');
+        $variationIDs = $query->condition('sku', $row['sku'])->execute();
+
+        $productVariation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load(current($variationIDs));
+        if ($productVariation->hasField('field_stock')) {
+          if ($productVariation->field_stock->value == NULL ) {
+            $productVariation->field_stock->value = 0;
+          }
+          $productVariation->field_stock->value = $productVariation->field_stock->value + $quantity;
+          $productVariation->save();
+
+          drupal_set_message($this->t($productVariation->getTitle() . ': ' . $productVariation->field_stock->value));
+        }
       }
       drupal_set_message($this->t('Operation Succeeded!'));
     }
-
   }
 
   /**
@@ -171,6 +174,5 @@ class StockInventoryControlForm extends FormBase {
 
     return $result ? TRUE : FALSE;
   }
-
 
 }
