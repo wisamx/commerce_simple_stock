@@ -28,9 +28,9 @@ class CommerceSimpleStockController extends ControllerBase {
     if ($input = $request->query->get('q')) {
       $query = $this->connection->select('commerce_product_variation_field_data', 'cpv');
       $query->fields('cpv', ['sku']);
-	  $query->fields('cpv', ['title']);
+      $query->fields('cpv', ['title']);
       $query->condition('cpv.sku', '%' . $input . '%', 'LIKE');
-	  $query->condition('cpv.langcode', 'en', 'LIKE');
+      $query->condition('cpv.langcode', 'en', 'LIKE');
       $query->range(0, 20);
       $result = $query->execute()->fetchCol();
     }
