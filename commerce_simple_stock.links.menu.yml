@@ -1,6 +1,12 @@
 commerce_simple_stock.inventory_control:
-  title: 'Inventory Control'
+  title: 'Inventory Adjustments'
   route_name: 'commerce_simple_stock.inventory_control'
   parent: 'commerce.admin_commerce'
-  description: 'Control inventory.'
+  description: 'Control inventory stock levels.'
   weight: 9
+  
+commerce_simple_stock.settings:
+  title: 'Inventory Settings'
+  route_name: 'commerce_simple_stock.settings'
+  parent: 'commerce.configuration'
+  description: 'Inventory settings.'
