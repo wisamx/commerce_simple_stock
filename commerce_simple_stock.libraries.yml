@@ -6,4 +6,4 @@ inventory_control:
   js:
     js/inventory_control.js: {}
   dependencies:
-    - core/jquery
+      - core/jquery

@@ -4,7 +4,6 @@
   margin: 5px;
 }
 
-/*
 .stock-inventory-control-form input[type="submit"] {
   border-radius: 5px;
   padding: 20px 0 20px 20px;
@@ -13,7 +12,7 @@
   width: 140px;
   color: #fff;
 }
-*/
+
 .stock-inventory-control-form .form-text {
   max-width: 300px;
 }
@@ -42,7 +41,6 @@
   border-color: #985f0d;
 }
 
-/*
 #edit-fill {
   background: #5bc0de url('/modules/commerce_simple_stock/images/fill.svg') no-repeat 30px;
   border-color: #46b8da;
@@ -52,7 +50,6 @@
   background-color: #31b0d5;
   border-color: #269abc;
 }
-*/
 
 #edit-move {
   background: #337ab7 url('/modules/commerce_simple_stock/images/move.svg') no-repeat 20px;
