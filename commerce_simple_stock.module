@@ -33,26 +33,37 @@ function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&
   if (empty($form_data['product'])) {
     return;
   }
-
-  $product = $form_data['product'];
-	
-  $variation = $product->getVariations()[0]; //My products have only one variation
-	
-  if ($variation->hasField('field_stock') && $variation->field_stock->value != NULL) {
-		
-    $stock = (integer) $variation->field_stock->value;
-    $allow_negative = \Drupal::config('commerce_simple_stock.settings')->get('allow_backorder');
-    if ($stock <= 0 && !$allow_negative) {
-      $form['quantity'] = NULL;
-      $form['actions'] = NULL;
-      $form['outofstock'] = [
-        '#type' => 'textfield',
-        '#value' => t('Out of stock'),
-        '#weight' => 0,
-        '#disabled' => TRUE,
-      ];
-    }
-
-  }
+        $selectedVariationId  = $form_state->get( 'selected_variation' );
+        $selectedVariation   = \Drupal\commerce_product\Entity\ProductVariation::load( $selectedVariationId );
+        $field_stock= $selectedVariation->get( "field_stock" )[ 0 ];
+	if ($field_stock != null) {
+            
+            $stock= $field_stock->getValue()[ 'value' ];
+            if ($stock <= 0) {
+                    $form['quantity'] = null;
+                    $form['actions'] = null;
+                    $form['outofstock'] = [
+                      'element1' => [
+                        '#type' => 'container',
+                        '#attributes' => [
+                            'class' => 'out-of-stock',
+                        ],
+                      ],
+                      'element2' => [
+                        '#type' => 'markup',
+                        '#markup' => "Out of stock",
+                        ],
+                    ];
+            } else {
+                $form['outofstock']= [
+                    'element2' => [
+                      '#prefix' => '<div class="quantity">',
+                      '#suffix' => '</div>',
+                      '#type' => 'markup',
+                      '#markup' => $stock." in stock ",
+                      ],
+                  ];
+            }
+	}
 	
 }
