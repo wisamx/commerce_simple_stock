@@ -54,15 +54,6 @@ function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&
                         '#markup' => "Out of stock",
                         ],
                     ];
-            } else {
-                $form['outofstock']= [
-                    'element2' => [
-                      '#prefix' => '<div class="quantity">',
-                      '#suffix' => '</div>',
-                      '#type' => 'markup',
-                      '#markup' => $stock." in stock ",
-                      ],
-                  ];
             }
 	}
 	
