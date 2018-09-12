@@ -33,28 +33,30 @@ function commerce_simple_stock_form_commerce_order_item_add_to_cart_form_alter(&
   if (empty($form_data['product'])) {
     return;
   }
-        $selectedVariationId  = $form_state->get( 'selected_variation' );
-        $selectedVariation   = \Drupal\commerce_product\Entity\ProductVariation::load( $selectedVariationId );
-        $field_stock= $selectedVariation->get( "field_stock" )[ 0 ];
-	if ($field_stock != null) {
-            
-            $stock= $field_stock->getValue()[ 'value' ];
-            if ($stock <= 0) {
-                    $form['quantity'] = null;
-                    $form['actions'] = null;
-                    $form['outofstock'] = [
-                      'element1' => [
-                        '#type' => 'container',
-                        '#attributes' => [
-                            'class' => 'out-of-stock',
-                        ],
-                      ],
-                      'element2' => [
-                        '#type' => 'markup',
-                        '#markup' => "Out of stock",
-                        ],
-                    ];
-            }
+
+	$selectedVariationId = $form_state->get('selected_variation');
+	if ($selectedVariationId != null) {
+		$variation = \Drupal\commerce_product\Entity\ProductVariation::load($selectedVariationId);
+	} else {
+		$product = $form_data['product'];
+		$variation = $product->getDefaultVariation();
+	}
+	
+	if ($variation->hasField('field_stock') && $variation->field_stock->value != null) {
+		
+		$stock = (integer) $variation->field_stock->value;
+		
+		if ($stock <= 0) {
+			$form['quantity'] = null;
+			$form['actions'] = null;
+			$form['outofstock'] = [
+			  '#type' => 'textfield',
+			  '#value' => t('Out of Stock'),
+			  '#weight' => 0,
+			  '#disabled' => true,
+			];
+		}
+		
 	}
 	
 }
